@@ -1,5 +1,4 @@
 import axios from 'axios';
-import store from '../store';
 import vue from 'vue';
 // import router from '../router';
 
@@ -25,12 +24,33 @@ service.interceptors.response.use(
   error => {
     console.log('err' + error);// for debug
     vue.$Message.error({
-                    message: error.message,
-                    duration: 5 * 1000,
-                    closable: true
-                });
+        message: error.message,
+        duration: 5 * 1000,
+        closable: true
+    });
     return Promise.reject(error);
   }
 )
 
 export default service;
+
+export function post(url, param, callback) {
+    service.post(url, param)
+        .then(function (response) {
+            console.log();
+            if (response.status == 200) {
+                if (response.data.success) {
+                    callback(response.data.result);
+                } else {
+                    alert(response.data.message);
+                }
+            } else {
+                alert('请求失败');
+            }
+        })
+        .catch(function (error) {
+            console.log(error);
+            alert('异常');
+        });
+}
+
