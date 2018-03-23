@@ -1,4 +1,4 @@
-import {post} from 'utils/fetch';
+import {post} from "utils/fetch";
 
 export function queryLine(userId, currentPage, pageSize, callBack) {
     const data = {
@@ -6,5 +6,9 @@ export function queryLine(userId, currentPage, pageSize, callBack) {
         currentPage: currentPage,
         pageSize: pageSize
     }
-    return post('/line/list', data, callBack);
+    return post("/line/list", data, callBack);
+}
+
+export function getJson(data, callBack) {
+    return post("/line/json", data, callBack);
 }

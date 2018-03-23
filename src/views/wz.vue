@@ -1,9 +1,23 @@
 <template>
     <div class="animated fadeIn">
         <Button type="primary" @click="handleSubmit('formInline')">查询</Button>
-        <h3>框架在手，天下我有</h3>
-        <p>好用的框架决定了一个程序员的效率</p>
-        <Table :columns="columns1" :data="data1"></Table>
+        <Button type="primary" @click="jumpToMap()">进入地图</Button>
+
+        <Table height="700"
+               :stripe=true
+               :border=true
+               :columns="columns1"
+               :data="data1">
+        </Table>
+        <Page :total="pageInfo.total"
+              show-sizer
+              show-elevator
+              show-total
+              :current="pageInfo.currentPage"
+              :page-size="pageInfo.pageSize"
+              @on-change="getNextPage"
+              @on-page-size-change="changeSize">
+        </Page>
     </div>
 </template>
 <script>
@@ -68,7 +82,12 @@
                         }
                     }
                 ],
-                data1: []
+                data1: [],
+                pageInfo: {
+                    pageSize: 20,
+                    currentPage: 1,
+                    total: 0
+                }
             };
         },
         created: function () {
@@ -88,7 +107,7 @@
             },
             handleSubmit() {
                 var that = this;
-                queryLine(1, 1, 20, function (data) {
+                queryLine(1, that.pageInfo.currentPage, that.pageInfo.pageSize, function (data) {
                     console.log("终于获得结果了");
                     console.log(data);
                     var newData = [];
@@ -100,7 +119,21 @@
                         newData.push(tmpData);
                     }
                     that.data1 = newData;
+                    that.pageInfo.total = data.total;
                 });
+            },
+            jumpToMap() {
+                this.$router.push("/wz/map");
+            },
+            getNextPage(page) {
+                console.log(page)
+                this.pageInfo.currentPage = page;
+                this.handleSubmit();
+            },
+            changeSize(pageSize) {
+                console.log(pageSize)
+                this.pageInfo.pageSize = pageSize;
+                this.handleSubmit();
             }
         }
     };
