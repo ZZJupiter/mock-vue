@@ -24,7 +24,7 @@
                 var map = new AMap.Map("mapContainer", {
                     resizeEnable: true,
                     center: [116.397428, 39.90923],//地图中心点
-                    zoom: 13,//地图显示的缩放级别
+                    zoom: 9,//地图显示的缩放级别
                     keyboardEnable: false
                 });
                 AMap.plugin(["AMap.Autocomplete", "AMap.PlaceSearch"], function () {

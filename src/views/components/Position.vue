@@ -1,37 +1,25 @@
 <template>
     <div>
         <div>
-            <div id="container" style="width: 1200px;height: 700px;float: left"></div>
-            <div id="panel" hidden></div>
-            <div style="width: 420px;height: 700px;float: left">
-                <Table height="700"
+            <div style="width: 420px;height: 780px;float: left">
+                <div id="myPageTop">
+                    <input style="width: 100%" type="text" placeholder="请输入关键字进行搜索" id="tipinput">
+                    <Row style="text-align: right;margin-top: 5px;margin-bottom: 5px">
+                        <Button type="success" @click="handleSubmit('formValidate')">标记为起点</Button>
+                        <Button type="primary" @click="handleSubmit('formValidate')">标记为途径</Button>
+                        <Button type="error" @click="handleSubmit('formValidate')">标记为终点</Button>
+                    </Row>
+                </div>
+                <Table height="730"
                        :stripe=true
                        :border=true
                        :columns="titleInfo"
                        :data="addressArray">
                 </Table>
             </div>
-
-        </div>
-        <div id="myPageTop">
-            <table>
-                <tr>
-                    <td>
-                        <label>按关键字搜索：</label>
-                    </td>
-                    <td class="column2">
-                        <label>左击获取经纬度：</label>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <input type="text" placeholder="请输入关键字进行搜索" id="tipinput">
-                    </td>
-                    <td class="column2">
-                        <input type="text" readonly="true" id="lnglat">
-                    </td>
-                </tr>
-            </table>
+            <div id="container" style="width: 1200px;height: 780px;float: left"></div>
+            <div id="panel" hidden></div>
+            <input type="hidden" readonly="true" id="lnglat">
         </div>
     </div>
 </template>
@@ -40,11 +28,12 @@
 <script>
 
     import AMap from "AMap"
+    import Input from "iview/src/components/input/input";
 
     var marker, map, truckOptions, driving, geocoder, geolocation, that, markers = [];
 
-
     export default {
+        components: {Input},
         mounted: function () {
             that = this;
             this.init()
@@ -90,7 +79,9 @@
                     }
                 ],
                 positionArray: [],
-                addressArray: []
+                addressArray: [],
+                currentMarker: null,
+                addressName: ""
             }
         },
         methods: {
@@ -151,6 +142,18 @@
                     if (e.poi && e.poi.location) {
                         map.setZoom(15);
                         map.setCenter(e.poi.location);
+                        console.log(e.poi.location);
+                        if (that.currentMarker != undefined) {
+                            that.currentMarker.setMap(null);
+                        }
+                        marker = new AMap.Marker({
+                            icon: "http://webapi.amap.com/theme/v1.3/markers/n/mark_b.png",
+                            position: [e.poi.location.lng, e.poi.location.lat],
+                            //draggable: true,  //是否可拖动
+                        });
+                        marker.setMap(map);
+                        that.currentMarker = marker;
+
                     }
                 }
             },
