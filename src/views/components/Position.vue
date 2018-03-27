@@ -13,13 +13,51 @@
                        :columns="titleInfo"
                        :data="positionArray"
                        :row-class-name="rowClassName"
-                       @on-row-click="selectOneRow">
+                       @on-row-click="selectOneRow"
+                       @on-row-dblclick="showEditForm">
                 </Table>
             </div>
             <div id="container" :style="mapStyle"></div>
             <div id="panel" hidden></div>
             <input type="hidden" readonly="true" id="lnglat">
         </div>
+        <Modal
+                v-model="modal1"
+                title="编辑地点"
+                @on-ok="ok"
+                @on-cancel="cancel">
+            <div>
+                <Row>
+                    <Col span="23">
+                    <div>
+                        <Form ref="formValidate" :model="formValidate" :rules="ruleValidate" :label-width="60">
+                            <Form-item label="地址" prop="name">
+                                <Input v-model="formValidate.name" placeholder="请输入姓名"></Input>
+                            </Form-item>
+                            <!--<Form-item label="选择时间">-->
+                            <!--<Row>-->
+                            <!--<Col span="12">-->
+                            <!--<TimePicker v-model="formValidate.time" format="HH:mm" type="timerange" placement="bottom-end"-->
+                            <!--placeholder="选择时间" style="width: 150px"></TimePicker>-->
+                            <!--</Col>-->
+                            <!--</Row>-->
+                            <!--</Form-item>-->
+                            <Form-item label="备注" prop="desc">
+                                <Input v-model="formValidate.desc" type="textarea" :autosize="{minRows: 2,maxRows: 5}"
+                                       placeholder="请输入..."></Input>
+                            </Form-item>
+                            <Form-item>
+                                <Button type="primary" @click="handleSubmit('formValidate')">提交</Button>
+                                <Button type="ghost" @click="handleReset('formValidate')" style="margin-left: 8px">重置
+                                </Button>
+                            </Form-item>
+                        </Form>
+                    </div>
+                    </Col>
+                </Row>
+            </div>
+        </Modal>
+
     </div>
 </template>
 <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main1119.css"/>
@@ -45,7 +83,12 @@
                 titleInfo: [
                     {
                         title: "地址",
-                        key: "addressName"
+                        key: "addressName",
+                        render: (h, params) => {
+                            return h("div", [
+                                h("strong", params.row.addressName)
+                            ]);
+                        }
                     },
                     // {
                     //     title: "纬度",
@@ -87,7 +130,26 @@
                 tableStyle: "",
                 tableHeight: "",
                 selectRowIndex: null,
-                selectRow: null,
+
+                //编辑地点相关
+                modal1: false,
+                formValidate: {
+                    name: "",
+                    // time: '00:00 00:00',
+                    desc: ""
+                },
+                ruleValidate: {
+                    name: [
+                        {required: true, message: "姓名不能为空", trigger: "blur"}
+                    ],
+                    // time: [
+                    //     {required: true, type: "time", message: "请选时间", trigger: "change"}
+                    // ],
+                    desc: [
+                        {required: false, message: "请输入个人介绍", trigger: "blur"},
+                        {type: "string", message: "请填写备注信息", trigger: "blur"}
+                    ]
+                }
             }
         },
         methods: {
@@ -172,6 +234,8 @@
                     //draggable: true,  //是否可拖动
                 });
                 marker.setMap(map);
+                marker.lng = position.lng;
+                marker.lat = position.lat;
                 markers.push(marker);
             },
             route: function (callback, position) {
@@ -205,6 +269,7 @@
 
             removeAddress: function (index) {
                 var tempPositionArray = [];
+                var removePosition = that.positionArray[index];
                 for (var j = 0; j < that.positionArray.length; j++) {
                     if (j != index) {
                         tempPositionArray.push(that.positionArray[j]);
@@ -212,10 +277,11 @@
                 }
                 var tempMarkerArray = [];
                 for (var k = 0; k < markers.length; k++) {
-                    if (k != index) {
-                        tempMarkerArray.push(markers[k]);
-                    } else {
+                    var temMarker = markers[k];
+                    if (removePosition.lng === temMarker.lng && removePosition.lat === temMarker.lat) {
                         markers[k].setMap(null);
+                    } else {
+                        tempMarkerArray.push(markers[k]);
                     }
                 }
                 that.positionArray = tempPositionArray;
@@ -225,6 +291,7 @@
                 } else {
                     that.route();
                 }
+                that.selectRowIndex = null;
             },
             changeMapSize: function () {
                 let w = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
@@ -249,8 +316,6 @@
             },
             selectOneRow: function (select, row) {
                 that.selectRowIndex = row;
-                that.selectRow = select;
-                that.positionArray[row].rowClassName = {name: "demo-table-info-row"};
             },
 
             changePosition: function (currentIndex, targetIndex) {
@@ -284,7 +349,38 @@
             },
             setCenter: function (position) {
                 map.setCenter([position.lng, position.lat]);
-            }
+            },
+            showEditForm: function (row, index) {
+                that.modal1 = true;
+                that.formValidate.name = row.addressName;
+            },
+            ok() {
+                this.modal1 = false,
+                    this.$Message.info("点击了确定");
+            },
+            cancel() {
+                this.$Message.info("点击了取消");
+            },
+
+            handleSubmit: function (name) {
+                var that = this;
+                this.$refs[name].validate((valid) => {
+                    if (valid) {
+                        this.$Message.success("提交成功!");
+                        console.log(that.formValidate);
+                        getJson(that.formValidate, function (data) {
+                            console.log("receive from backend");
+                            console.log(data);
+                        });
+                    } else {
+                        this.$Message.error("表单验证失败!");
+                    }
+                })
+            },
+
+            handleReset: function (name) {
+                this.$refs[name].resetFields();
+            },
 
         }
     }
