@@ -40,39 +40,39 @@ export const asyncRouterMap = [
 
     {
         path: "/",
-        redirect: "/wz",
+        redirect: "/position",
         name: "首页",
         component: Full,
         hidden: false,
         children: [
-            //自定义页面
-            {
-                path: "/wz", name: "线路", icon: "social-html5", redirect: "/wz/line",
-                component: {
-                    render(c) {
-                        return c("router-view")
-                    }
-                },
-                children: [
-                    {
-                        path: "line",
-                        name: "线路列表",
-                        icon: "social-html5",
-                        component: _import("wz")
-                    },
-                    {
-                        path: "map",
-                        name: "高德地图",
-                        icon: "ios-list-outline",
-                        component: _import("components/GdMap"),
-                        hidden: true,
-                    },
-                ]
-            },
-            {path: "/form", name: "Form表单", icon: "ios-list-outline", component: _import("components/Form")},
-            {path: "/modal", name: "弹窗", icon: "ios-list-outline", component: _import("components/Modal")},
-            {path: "/transfer", name: "穿越", icon: "ios-list-outline", component: _import("components/Transfer")},
-            {path: "/jsontree", name: "JSON视图", icon: "merge", component: _import("components/JsonTree")},
+            // //自定义页面
+            // {
+            //     path: "/wz", name: "线路", icon: "social-html5", redirect: "/wz/line",
+            //     component: {
+            //         render(c) {
+            //             return c("router-view")
+            //         }
+            //     },
+            //     children: [
+            //         {
+            //             path: "line",
+            //             name: "线路列表",
+            //             icon: "social-html5",
+            //             component: _import("wz")
+            //         },
+            //         {
+            //             path: "map",
+            //             name: "高德地图",
+            //             icon: "ios-list-outline",
+            //             component: _import("components/GdMap"),
+            //             hidden: true,
+            //         },
+            //     ]
+            // },
+            // {path: "/form", name: "Form表单", icon: "ios-list-outline", component: _import("components/Form")},
+            // {path: "/modal", name: "弹窗", icon: "ios-list-outline", component: _import("components/Modal")},
+            // {path: "/transfer", name: "穿越", icon: "ios-list-outline", component: _import("components/Transfer")},
+            // {path: "/jsontree", name: "JSON视图", icon: "merge", component: _import("components/JsonTree")},
             {path: "/position", name: "地图定位", icon: "merge", component: _import("components/Position")},
 
 

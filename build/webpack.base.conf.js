@@ -42,6 +42,7 @@ module.exports = {
     externals: {
         jquery: "jQuery",
         AMap: "AMap"
+
     },
     module: {
         rules: [
@@ -81,11 +82,10 @@ module.exports = {
                 }
             }
         ]
-    }
-    ,
-//注入全局mixin
-// sassResources: path.join(__dirname, '../src/styles/mixin.scss'),
-// sassLoader: {
-//     data:  path.join(__dirname, '../src/styles/index.scss')
-// },
+    },
+    //注入全局mixin
+    // sassResources: path.join(__dirname, '../src/styles/mixin.scss'),
+    // sassLoader: {
+    //     data:  path.join(__dirname, '../src/styles/index.scss')
+    // },
 }

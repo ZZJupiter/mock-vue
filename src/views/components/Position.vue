@@ -27,12 +27,10 @@
 <script>
 
     import AMap from "AMap"
-    import Input from "iview/src/components/input/input";
 
     var marker, map, truckOptions, driving, geocoder, geolocation, that, markers = [];
 
     export default {
-        components: {Input},
         mounted: function () {
             that = this;
             that.init();
