@@ -13,11 +13,17 @@
     </div>
 </template>
 <script>
-    import AMap from "AMap"
+    import AMap from "AMap";
+
+    var that;
 
     export default {
+        created: function () {
+            that = this;
+        },
         mounted: function () {
-            this.init()
+            that.init();
+            console.log(that.$route.query)
         },
         methods: {
             init: function () {
@@ -45,8 +51,17 @@
             },
             goBack: function () {
                 this.$router.back();
+            },
+            getParams: function () {
+                // 取到路由带过来的参数
+                let routerParams = this.$route.params;
+                // 将数据放在当前组件的数据内
+                console.log(routerParams);
             }
-
+        },
+        watch: {
+            // 监测路由变化,只要变化了就调用获取路由参数方法将数据存储本组件即可
+            $router: "getParams"
         }
     }
 </script>

@@ -122,16 +122,14 @@
                     that.pageInfo.total = data.total;
                 });
             },
-            jumpToMap() {
-                this.$router.push("/wz/map");
+            jumpToMap: function () {
+                that.$router.push("/line/map");
             },
             getNextPage(page) {
-                console.log(page)
                 this.pageInfo.currentPage = page;
                 this.handleSubmit();
             },
             changeSize(pageSize) {
-                console.log(pageSize)
                 this.pageInfo.pageSize = pageSize;
                 this.handleSubmit();
             }

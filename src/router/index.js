@@ -40,40 +40,48 @@ export const asyncRouterMap = [
 
     {
         path: "/",
-        redirect: "/position",
+        redirect: "/line",
         name: "首页",
         component: Full,
         hidden: false,
         children: [
-            // //自定义页面
-            // {
-            //     path: "/wz", name: "线路", icon: "social-html5", redirect: "/wz/line",
-            //     component: {
-            //         render(c) {
-            //             return c("router-view")
-            //         }
-            //     },
-            //     children: [
-            //         {
-            //             path: "line",
-            //             name: "线路列表",
-            //             icon: "social-html5",
-            //             component: _import("wz")
-            //         },
-            //         {
-            //             path: "map",
-            //             name: "高德地图",
-            //             icon: "ios-list-outline",
-            //             component: _import("components/GdMap"),
-            //             hidden: true,
-            //         },
-            //     ]
-            // },
+            //自定义页面
+            {
+                path: "/line", name: "线路", icon: "social-html5", redirect: "/line/list",
+                component: {
+                    render(c) {
+                        return c("router-view")
+                    }
+                },
+                children: [
+                    {
+                        path: "list",
+                        name: "线路列表",
+                        icon: "social-html5",
+                        component: _import("components/Line")
+                    },
+                    {
+                        path: "map",
+                        name: "线路图",
+                        icon: "ios-list-outline",
+                        component: _import("components/GdMap"),
+                        hidden: true,
+                    },
+                    {
+                        path: "route",
+                        name: "线路规划",
+                        icon: "ios-list-outline",
+                        component: _import("components/Position"),
+                        hidden: true,
+                    },
+                ]
+            },
             // {path: "/form", name: "Form表单", icon: "ios-list-outline", component: _import("components/Form")},
             // {path: "/modal", name: "弹窗", icon: "ios-list-outline", component: _import("components/Modal")},
             // {path: "/transfer", name: "穿越", icon: "ios-list-outline", component: _import("components/Transfer")},
             // {path: "/jsontree", name: "JSON视图", icon: "merge", component: _import("components/JsonTree")},
-            {path: "/position", name: "地图定位", icon: "merge", component: _import("components/Position")},
+            // {path: "/position", name: "地图定位", icon: "merge", component: _import("components/Position")},            {path: "/position", name: "地图定位", icon: "merge", component: _import("components/Position")},
+
 
 
         ]

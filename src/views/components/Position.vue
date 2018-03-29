@@ -1,62 +1,43 @@
 <template>
     <div>
         <div>
-            <div :style="tableStyle">
-                <div id="myPageTop" style="margin-bottom: 15px">
-                    <input style="width: 333px;margin-right: 10px" type="text" placeholder="请输入关键字进行搜索" id="tipinput">
-                    <ButtonGroup>
-                        <Button type="primary" icon="ios-skipbackward" size="small" @click="forwardPosition"></Button>
-                        <Button type="primary" icon="ios-skipforward" size="small" @click="backwardPosition"></Button>
-                    </ButtonGroup>
-                </div>
-                <Table :height="tableHeight"
-                       :columns="titleInfo"
-                       :data="positionArray"
-                       :row-class-name="rowClassName"
-                       @on-row-click="selectOneRow"
-                       @on-row-dblclick="showEditForm">
-                </Table>
-            </div>
-            <div id="container" :style="mapStyle"></div>
-            <div id="panel" hidden></div>
-            <input type="hidden" readonly="true" id="lnglat">
-        </div>
-        <Modal
-                v-model="modal1"
-                title="编辑地点"
-                @on-ok="ok"
-                @on-cancel="cancel">
-            <div>
+            <div style="margin-bottom: 8px">
                 <Row>
-                    <Col span="23">
-                    <div>
-                        <Form ref="formValidate" :model="formValidate" :rules="ruleValidate" :label-width="60">
-                            <Form-item label="地址" prop="name">
-                                <Input v-model="formValidate.name" placeholder="请输入姓名"></Input>
-                            </Form-item>
-                            <!--<Form-item label="选择时间">-->
-                            <!--<Row>-->
-                            <!--<Col span="12">-->
-                            <!--<TimePicker v-model="formValidate.time" format="HH:mm" type="timerange" placement="bottom-end"-->
-                            <!--placeholder="选择时间" style="width: 150px"></TimePicker>-->
-                            <!--</Col>-->
-                            <!--</Row>-->
-                            <!--</Form-item>-->
-                            <Form-item label="备注" prop="desc">
-                                <Input v-model="formValidate.desc" type="textarea" :autosize="{minRows: 2,maxRows: 5}"
-                                       placeholder="请输入..."></Input>
-                            </Form-item>
-                            <Form-item>
-                                <Button type="primary" @click="handleSubmit('formValidate')">提交</Button>
-                                <Button type="ghost" @click="handleReset('formValidate')" style="margin-left: 8px">重置
-                                </Button>
-                            </Form-item>
-                        </Form>
+                    <Col span="8">
+                    <div style="height: 32px;margin-top: 5px">
+                        <h5>{{lineName}}</h5>
                     </div>
+                    </Col>
+                    <Col span="12">
+                    <div style="padding-right: 10px">
+                        <input style="width: 100%;height: 32px;" type="text" placeholder="请输入关键字进行搜索" id="tipinput">
+                    </div>
+                    </Col>
+                    <Col span="4">
+                    <ButtonGroup>
+                        <Button type="primary" icon="ios-skipbackward" @click="forwardPosition"></Button>
+                        <Button type="primary" icon="ios-skipforward" @click="backwardPosition"></Button>
+                    </ButtonGroup>
+                    <Button type="primary" @click="saveRoute">保存线路</Button>
                     </Col>
                 </Row>
             </div>
-        </Modal>
+            <div>
+                <div :style="tableStyle">
+                    <Table :height="tableHeight"
+                           :columns="titleInfo"
+                           :data="positionArray"
+                           :row-class-name="rowClassName"
+                           @on-row-click="selectOneRow"
+                           @on-row-dblclick="showEditForm">
+                    </Table>
+                </div>
+                <div id="container" :style="mapStyle"></div>
+            </div>
+
+            <div id="panel" hidden></div>
+            <input type="hidden" readonly="true" id="lnglat">
+        </div>
 
     </div>
 </template>
@@ -65,24 +46,25 @@
 <script>
 
     import AMap from "AMap"
+    import {deletePoint, getLineRoute, saveRoute} from "api/line";
 
     var marker, map, truckOptions, driving, geocoder, geolocation, that, markers = [];
 
     export default {
-        mounted: function () {
-            that = this;
-            that.init();
-            that.changeMapSize();
-            window.addEventListener("resize", that.changeMapSize);
-        },
         created: function () {
-
+            that = this;
+            that.changeMapSize();
+            that.getParamLastPage();
+        },
+        mounted: function () {
+            that.init();
+            window.addEventListener("resize", that.changeMapSize);
         },
         data() {
             return {
                 titleInfo: [
                     {
-                        title: "地址",
+                        title: "地点",
                         key: "addressName",
                         render: (h, params) => {
                             return h("div", [
@@ -90,10 +72,6 @@
                             ]);
                         }
                     },
-                    // {
-                    //     title: "纬度",
-                    //     key: "lat"
-                    // }
                     {
                         title: "操作",
                         key: "action",
@@ -132,24 +110,20 @@
                 selectRowIndex: null,
 
                 //编辑地点相关
-                modal1: false,
+                showEditPoint: false,
                 formValidate: {
                     name: "",
-                    // time: '00:00 00:00',
                     desc: ""
                 },
                 ruleValidate: {
                     name: [
                         {required: true, message: "姓名不能为空", trigger: "blur"}
-                    ],
-                    // time: [
-                    //     {required: true, type: "time", message: "请选时间", trigger: "change"}
-                    // ],
-                    desc: [
-                        {required: false, message: "请输入个人介绍", trigger: "blur"},
-                        {type: "string", message: "请填写备注信息", trigger: "blur"}
                     ]
-                }
+                },
+
+                //线路信息
+                lineId: "",
+                lineName: "",
             }
         },
         methods: {
@@ -217,13 +191,29 @@
                         that.currentMarker = marker;
                         that.currentPosition = e.poi.location;
                     }
-                }
+                };
+
+                var params = {
+                    lineId: that.lineId
+                };
+                getLineRoute(params, function (data) {
+                    that.positionArray = data.result;
+                    if (data.result.length > 0) {
+                        that.route();
+                    }
+                });
+            },
+            getParamLastPage: function () {
+                let query = that.$route.query;
+                that.lineName = query.lineName;
+                that.lineId = query.lineId;
             },
             initMarkers: function () {
                 if (markers.length > 0) {
                     for (var i = 0; i < markers.length; i++) {
-                        markers[i].setMap(map);
+                        markers[i].setMap(null);
                     }
+                    markers = [];
                 }
             },
             //实例化点标记
@@ -268,8 +258,18 @@
             },
 
             removeAddress: function (index) {
+
                 var tempPositionArray = [];
                 var removePosition = that.positionArray[index];
+                //检查待删除的点位是否已经持久化,如果已经持久化,删除
+                if (removePosition.id) {
+                    var params = {
+                        id: removePosition.id,
+                    }
+                    deletePoint(params, function () {
+                        that.$Message.success("同步成功");
+                    });
+                }
                 for (var j = 0; j < that.positionArray.length; j++) {
                     if (j != index) {
                         tempPositionArray.push(that.positionArray[j]);
@@ -296,11 +296,12 @@
             changeMapSize: function () {
                 let w = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
                 let h = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
-                var mapHeight = h - (55 + 46 + 25);
+                var containerHeight = h - 160;
                 var mapWidth = w - (200 + 15 * 2) - 400;
-                that.tableStyle = "width:400px;height:" + mapHeight + "px;float: left";
-                that.mapStyle = "width: " + mapWidth + "px;height:" + mapHeight + "px;float: left";
-                that.tableHeight = mapHeight - 40;
+                that.tableHeight = containerHeight;
+                that.tableStyle = "width:400px;height:" + containerHeight + "px;float: left";
+                that.mapStyle = "width: " + mapWidth + "px;height:" + containerHeight + "px;float: left";
+
             },
             addPosition: function (position) {
                 var lnglatXY = [position.lng, position.lat]; //已知点坐标
@@ -351,7 +352,7 @@
                 map.setCenter([position.lng, position.lat]);
             },
             showEditForm: function (row, index) {
-                that.modal1 = true;
+                that.showEditPoint = true;
                 that.formValidate.name = row.addressName;
             },
             ok() {
@@ -362,25 +363,33 @@
                 this.$Message.info("点击了取消");
             },
 
-            handleSubmit: function (name) {
-                var that = this;
-                this.$refs[name].validate((valid) => {
-                    if (valid) {
-                        this.$Message.success("提交成功!");
-                        console.log(that.formValidate);
-                        getJson(that.formValidate, function (data) {
-                            console.log("receive from backend");
-                            console.log(data);
-                        });
-                    } else {
-                        this.$Message.error("表单验证失败!");
-                    }
-                })
-            },
-
             handleReset: function (name) {
                 this.$refs[name].resetFields();
             },
+
+            goBack: function () {
+                this.$router.back();
+            },
+
+            saveRoute: function () {
+
+                that.positionArray[0].pointType = "START";
+                that.positionArray[0].seq = 0;
+                for (var i = 1; i < that.positionArray.length - 1; i++) {
+                    that.positionArray[i].pointType = "PASS";
+                    that.positionArray[i].seq = i;
+                }
+                that.positionArray[that.positionArray.length - 1].pointType = "END";
+                that.positionArray[that.positionArray.length - 1].seq = that.positionArray.length - 1;
+
+                var data = {
+                    lineId: that.lineId,
+                    points: that.positionArray
+                };
+                saveRoute(data, function () {
+                    that.$Message.success("提交成功!");
+                });
+            }
 
         }
     }
