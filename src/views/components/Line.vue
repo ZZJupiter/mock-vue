@@ -78,6 +78,18 @@
                 </Row>
             </div>
         </Modal>
+
+        <Modal
+                v-model="showQrcode"
+                :mask-closable=true
+                :width="180"
+                :height="150"
+                @on-ok="ok"
+                @on-cancel="cancel">
+            <div style="text-align: center;height: 100%;width: 100%">
+                <img :src="qrcodeUrl">
+            </div>
+        </Modal>
     </div>
 </template>
 <script>
@@ -123,6 +135,7 @@
                         title: "操作",
                         key: "action",
                         align: "center",
+                        width: 240,
                         render: (h, params) => {
                             return h("div", [
                                 h(
@@ -160,6 +173,24 @@
                                         }
                                     },
                                     "线路"
+                                ),
+                                h(
+                                    "Button",
+                                    {
+                                        props: {
+                                            type: "info",
+                                            size: "small"
+                                        },
+                                        style: {
+                                            marginRight: "5px"
+                                        },
+                                        on: {
+                                            click: () => {
+                                                this.showQrcodeModal(params.index);
+                                            }
+                                        }
+                                    },
+                                    "二维码"
                                 ),
                                 h(
                                     "Button",
@@ -219,7 +250,10 @@
                     endCityName: null,
                     currentPage: 1,
                     pageSize: 10
-                }
+                },
+                //展示二维码
+                showQrcode: false,
+                qrcodeUrl: null,
             };
         },
         created: function () {
@@ -281,6 +315,10 @@
                     }
                 });
             },
+            showQrcodeModal: function (index) {
+                that.showQrcode = true;
+                that.qrcodeUrl = process.env.BASE_API + "/lineRoute/qrcode?lineId=" + that.lineData[index].id;
+            }
         }
     };
 </script>
